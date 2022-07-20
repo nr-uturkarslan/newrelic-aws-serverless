@@ -1,17 +1,19 @@
 package service;
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.google.gson.Gson;
+import dto.RequestDto;
 import dto.ResponseDto;
 import entity.Order;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.util.UUID;
 
 public class Validator {
 
-    private static final String ORDER_NOT_PROVIDED =
-            "message:Order is not provided.";
+    private static final String REQUEST_BODY_NOT_PARSED =
+            "message:Request body cannot be parsed.";
     private static final String ORDER_NAME_NOT_PROVIDED =
             "message:Order name is not provided.";
     private static final String ORDER_DESCRIPTION_NOT_PROVIDED =
@@ -23,16 +25,39 @@ public class Validator {
 
     private final LambdaLogger logger;
 
+    private final Gson gson = new Gson();
+
     public Validator(LambdaLogger logger) {
         this.logger = logger;
     }
 
-    public ResponseEntity<ResponseDto> run(Order order) {
-        logger.log("message:Validating order...");
+    public APIGatewayProxyResponseEvent run(
+            APIGatewayProxyRequestEvent input
+    ) {
 
-        // Check object
-        if (order == null)
-            return createFailedResponse(ORDER_NOT_PROVIDED);
+        var requestDto = parseRequestBody(input.getBody());
+        if (requestDto == null || requestDto.getOrder() == null)
+            return createFailedResponse(REQUEST_BODY_NOT_PARSED);
+
+        return validateOrder(requestDto.getOrder());
+    }
+
+    private RequestDto parseRequestBody(
+            String body
+    ) {
+        logger.log("message:Parsing input body...");
+        try {
+            return gson.fromJson(body, RequestDto.class);
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
+
+    private APIGatewayProxyResponseEvent validateOrder(
+            Order order
+    ) {
+        logger.log("message:Validating order...");
 
         // Check name
         if (order.getName() == null)
@@ -53,7 +78,7 @@ public class Validator {
         return createSuccessfulResponse(order);
     }
 
-    private ResponseEntity<ResponseDto> createFailedResponse(
+    private APIGatewayProxyResponseEvent createFailedResponse(
             String message
     ) {
         logger.log(message);
@@ -61,10 +86,14 @@ public class Validator {
         var responseDto = new ResponseDto();
         responseDto.setMessage(message);
 
-        return new ResponseEntity<ResponseDto>(responseDto, HttpStatus.BAD_REQUEST);
+        var response = new APIGatewayProxyResponseEvent();
+        response.setStatusCode(400);
+        response.setBody(gson.toJson(responseDto));
+
+        return response;
     }
 
-    private ResponseEntity<ResponseDto> createSuccessfulResponse(
+    private APIGatewayProxyResponseEvent createSuccessfulResponse(
             Order order
     ) {
         logger.log("message:Order received," +
@@ -77,6 +106,10 @@ public class Validator {
         responseDto.setCorrelationId(UUID.randomUUID().toString());
         responseDto.setOrderId(UUID.randomUUID().toString());
 
-        return new ResponseEntity<ResponseDto>(responseDto, HttpStatus.OK);
+        var response = new APIGatewayProxyResponseEvent();
+        response.setStatusCode(200);
+        response.setBody(gson.toJson(responseDto));
+
+        return response;
     }
 }

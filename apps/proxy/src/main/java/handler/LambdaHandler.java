@@ -1,19 +1,19 @@
 package handler;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import dto.RequestDto;
-import dto.ResponseDto;
-import org.springframework.http.ResponseEntity;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+
 import service.Validator;
 
-public class LambdaHandler {
-
-    public ResponseEntity<ResponseDto> handleRequest(
-            RequestDto requestDto,
+public class LambdaHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+    @Override
+    public APIGatewayProxyResponseEvent handleRequest(
+            APIGatewayProxyRequestEvent input,
             Context context
     ) {
-
         var validator = new Validator(context.getLogger());
-        return validator.run(requestDto.getOrder());
+        return validator.run(input);
     }
 }
