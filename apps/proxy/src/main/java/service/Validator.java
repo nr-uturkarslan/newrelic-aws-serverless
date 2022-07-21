@@ -47,7 +47,11 @@ public class Validator {
     ) {
         logger.log("message:Parsing input body...");
         try {
-            return gson.fromJson(body, RequestDto.class);
+            var requestDto = gson.fromJson(body, RequestDto.class);
+
+            logger.log("message:Input body is parsed successfully.");
+
+            return requestDto;
         }
         catch (Exception e) {
             return null;
@@ -75,6 +79,8 @@ public class Validator {
         if (order.getAmount() == null)
             return createFailedResponse(ORDER_AMOUNT_NOT_PROVIDED);
 
+        logger.log("message:Order is validated successfully.");
+
         return createSuccessfulResponse(order);
     }
 
@@ -96,10 +102,10 @@ public class Validator {
     private APIGatewayProxyResponseEvent createSuccessfulResponse(
             Order order
     ) {
-        logger.log("message:Order received," +
-                "orderName:"+order.getName() +
-                "unitPrice:"+order.getUnitPrice() +
-                "amount:"+order.getAmount());
+        logger.log("message:Order received" +
+                ",orderName:"+order.getName() +
+                ",unitPrice:"+order.getUnitPrice() +
+                ",amount:"+order.getAmount());
 
         var responseDto = new ResponseDto();
         responseDto.setMessage("Order is valid.");
