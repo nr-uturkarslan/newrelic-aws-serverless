@@ -16,7 +16,7 @@ export class CdkStack extends Stack {
 
     // Create S3 bucket
     const bucket = new s3.Bucket(this, S3_BUCKET_NAME, {
-      // removalPolicy: RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
     // Create Storer Lambda
