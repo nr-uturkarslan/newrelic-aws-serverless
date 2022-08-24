@@ -4,15 +4,6 @@ import datetime
 import boto3
 
 def prepareResponse(success, message):
-  # response = {
-  #   "statusCode": 200,
-  #   "body": json.dumps(
-  #     {
-  #       "success": success,
-  #       "message": message,
-  #     }
-  #   ),
-  # }
   response = {
     "statusCode": 200,
     "body": {
