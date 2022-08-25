@@ -3,6 +3,11 @@ import json
 import datetime
 import boto3
 
+s3Client = boto3.client("s3")
+
+def log(message):
+  print("storer:{}".format(message))
+
 def prepareResponse(success, message):
   response = {
     "statusCode": 200,
@@ -12,10 +17,12 @@ def prepareResponse(success, message):
     }
   }
 
-  print(response)
+  log(response)
   return response
 
 def lambda_handler(event, context):
+
+  log("Lambda is triggered.")
 
   # Get bucket name
   bucketName = os.getenv('S3_BUCKET_NAME')
@@ -31,14 +38,13 @@ def lambda_handler(event, context):
   # Store in S3
   try:
     fileName = "{}.json".format(datetime.datetime.now(datetime.timezone.utc))
-    client = boto3.client("s3")
-    client.put_object(
+    s3Client.put_object(
       Bucket = bucketName,
       Key = fileName,
       Body = encodedString
     )
   except Exception as e:
-    print(e)
+    log(e)
     return prepareResponse(False, "File is failed to be stored in S3.")
 
   return prepareResponse(True, "File is stored in S3 successfully.")
