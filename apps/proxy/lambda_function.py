@@ -1,3 +1,4 @@
+import newrelic
 import os
 import json
 import boto3
@@ -6,6 +7,11 @@ lambdaClient = boto3.client("lambda")
 
 def log(message):
   print("proxy:{}".format(message))
+
+def insertDistributedTracingHeaders(requestBody):
+  dtHeaders = []
+  newrelic.agent.insert_distributed_trace_headers(headers=dtHeaders)
+  requestBody["dtHeaders"] = dtHeaders
 
 def prepareResponse(statusCode, message):
   response = {
@@ -26,6 +32,7 @@ def lambda_handler(event, context):
 
   # Parse request body
   requestBody = json.loads(event["body"])
+  insertDistributedTracingHeaders(requestBody)
 
   try:
     # Send payload to storer lambda

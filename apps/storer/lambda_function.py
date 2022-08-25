@@ -1,3 +1,4 @@
+import newrelic
 import os
 import json
 import datetime
@@ -7,6 +8,11 @@ s3Client = boto3.client("s3")
 
 def log(message):
   print("storer:{}".format(message))
+
+def acceptDistributedTracingHeaders(event):
+  dtHeaders = event.get("dtHeaders")
+  
+  newrelic.agent.accept_distributed_trace_headers(dtHeaders, transport_type='HTTP')
 
 def prepareResponse(success, message):
   response = {
@@ -23,6 +29,8 @@ def prepareResponse(success, message):
 def lambda_handler(event, context):
 
   log("Lambda is triggered.")
+
+  acceptDistributedTracingHeaders(event)
 
   # Get bucket name
   bucketName = os.getenv('S3_BUCKET_NAME')
