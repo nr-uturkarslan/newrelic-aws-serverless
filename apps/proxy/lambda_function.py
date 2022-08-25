@@ -6,7 +6,7 @@ import boto3
 lambdaClient = boto3.client("lambda")
 
 def log(message):
-  print("proxy:{}".format(message))
+  print("proxy: {}".format(message))
 
 def insertDistributedTracingHeaders(requestBody):
   dtHeaders = []
