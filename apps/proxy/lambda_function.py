@@ -3,10 +3,12 @@ import os
 import json
 import boto3
 
+LAMBDA_NAME = "proxy"
+
 lambdaClient = boto3.client("lambda")
 
 def log(message):
-  print("proxy: {}".format(message))
+  print("{}: {}".format(LAMBDA_NAME, message))
 
 def insertDistributedTracingHeaders(requestBody):
   dtHeaders = []

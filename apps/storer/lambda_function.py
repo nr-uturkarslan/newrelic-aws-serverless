@@ -1,13 +1,15 @@
 import newrelic
 import os
 import json
-import datetime
+import time
 import boto3
+
+LAMBDA_NAME = "storer"
 
 s3Client = boto3.client("s3")
 
 def log(message):
-  print("storer: {}".format(message))
+  print("{}: {}".format(LAMBDA_NAME, message))
 
 def acceptDistributedTracingHeaders(event):
   dtHeaders = event.get("dtHeaders")
@@ -40,13 +42,14 @@ def lambda_handler(event, context):
 
   # Parse request body
   try:
-    encodedString = json.dumps(event).encode("utf-8")
+    file = event.get("file")
+    encodedString = json.dumps(file).encode("utf-8")
   except:
     return prepareResponse(False, "Failed to parse request body.")
 
   # Store in S3
   try:
-    fileName = "{}.json".format(datetime.datetime.now(datetime.timezone.utc))
+    fileName = "{}.json".format(round(time.time()*1000))
     s3Client.put_object(
       Bucket = bucketName,
       Key = fileName,
